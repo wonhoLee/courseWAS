@@ -9,13 +9,16 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.file.Files;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import model.HttpHeader;
 import model.User;
 import util.HttpRequestUtils;
+import util.IOUtils;
 
 public class RequestHandler extends Thread {
 	private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
@@ -35,14 +38,16 @@ public class RequestHandler extends Thread {
 			if(line == null) {
 				return;
 			}
-			String url = HttpRequestUtils.getUrl(line);
+			HttpHeader httpHeader = HttpRequestUtils.getHttp(line);
+			String url = httpHeader.getUrl();
+			String type = httpHeader.getType();
+			
 			if (url.startsWith("/create")) {
-				int index = url.indexOf("?");
-				String queryString = url.substring(index + 1);
-				Map<String, String> params = HttpRequestUtils.parseQueryString(queryString);
-				User user = new User(params.get("userId"), params.get("password"), params.get("name"), params.get("email"));
-				log.debug("user : {} ", user);
-				
+				if(type.equals("GET")) {
+					HttpRequestUtils.getGetUser(url);
+				}else if(type.equals("POST")){
+					HttpRequestUtils.getPostUser(br, line);
+				}
 				url = "/index.html";
 			}
 			

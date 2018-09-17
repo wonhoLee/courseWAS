@@ -1,6 +1,9 @@
 package util;
 
+import java.io.BufferedReader;
+import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -10,15 +13,48 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 
+import model.HttpHeader;
+import model.User;
+
 public class HttpRequestUtils {
 	private static final Logger log = LoggerFactory.getLogger(HttpRequestUtils.class);
 	
-	public static String getUrl(String firstLine) {
+	public static HttpHeader getHttp(String firstLine) {
 		String[] splited = firstLine.split(" ");
-		String path = splited[1];
-		log.debug("request path : {}", path);
+		HttpHeader httpHeader = new HttpHeader(splited[0], splited[1]);
+		return httpHeader;
+	}
+	
+	public static User getGetUser(String url) {
+		int index = url.indexOf("?");
+		String queryString = url.substring(index + 1);
+		Map<String, String> params = parseQueryString(queryString);
+		User user = new User(params.get("userId"), params.get("password"), params.get("name"), params.get("email"));
+		log.debug("user : {} ", user);
 		
-		return path;
+		return user;
+	}
+	
+	public static User getPostUser(BufferedReader br, String line) throws IOException {
+		Map<String, String> headers = new HashMap<>();
+		while(!"".equals(line)) {
+			log.debug("header : {}", line);
+			line = br.readLine();
+			String[] headerTokens = line.split(": ");
+			if(headerTokens.length == 2) {
+				headers.put(headerTokens[0], headerTokens[1]);
+			}
+		}
+		log.debug("Content-Length : {} ", headers.get("Content-Length"));
+		
+		String requestBody = IOUtils.readData(br, Integer.parseInt(headers.get("Content-Length")));
+		
+		log.debug("RequestBody : {} ", requestBody);
+		Map<String, String> params = HttpRequestUtils.parseQueryString(requestBody);
+		User user = new User(params.get("userId"), params.get("password"), params.get("name"), params.get("email"));
+		log.debug("user : {} ", user);
+		
+		return user;
 	}
 	
 	/**
