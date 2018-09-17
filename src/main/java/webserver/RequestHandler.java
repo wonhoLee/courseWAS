@@ -23,7 +23,6 @@ public class RequestHandler extends Thread {
 		
 		try (InputStream in = connection.getInputStream(); OutputStream out = connection.getOutputStream()) {
 			
-			
 			DataOutputStream dos = new DataOutputStream(out);
 			byte[] body = "Hello World".getBytes();
 			response200Header(dos, body.length);
