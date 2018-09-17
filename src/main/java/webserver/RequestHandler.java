@@ -61,6 +61,10 @@ public class RequestHandler extends Thread {
 					log.debug("Password Missmatch!");
 					response302Header(dos);
 				}
+			}else if(url.endsWith(".css")) {
+				byte[] body = Files.readAllBytes(new File("./webapp" + url).toPath());
+				response200HeaderWithCss(dos, body.length);
+				responseBody(dos, body);
 			} else {
 				byte[] body = Files.readAllBytes(new File("./webapp" + url).toPath());
 				response200Header(dos, body.length);
@@ -76,6 +80,17 @@ public class RequestHandler extends Thread {
 		try {
 			dos.writeBytes("HTTP/1.1 200 OK \r\n");
 			dos.writeBytes("Content-Type: text/html;charset=utf-8\r\n");
+			dos.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
+			dos.writeBytes("\r\n");
+		} catch (IOException e) {
+			log.error(e.getMessage());
+		}
+	}
+	
+	private void response200HeaderWithCss(DataOutputStream dos, int lengthOfBodyContent) {
+		try {
+			dos.writeBytes("HTTP/1.1 200 OK \r\n");
+			dos.writeBytes("Content-Type: text/css;charset=utf-8\r\n");
 			dos.writeBytes("Content-Length: " + lengthOfBodyContent + "\r\n");
 			dos.writeBytes("\r\n");
 		} catch (IOException e) {
