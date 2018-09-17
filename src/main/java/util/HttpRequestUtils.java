@@ -14,7 +14,6 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 
 import model.HttpHeader;
-import model.User;
 
 public class HttpRequestUtils {
 	private static final Logger log = LoggerFactory.getLogger(HttpRequestUtils.class);
@@ -25,17 +24,23 @@ public class HttpRequestUtils {
 		return httpHeader;
 	}
 	
-	public static User getGetUser(String url) {
-		int index = url.indexOf("?");
-		String queryString = url.substring(index + 1);
-		Map<String, String> params = parseQueryString(queryString);
-		User user = new User(params.get("userId"), params.get("password"), params.get("name"), params.get("email"));
-		log.debug("user : {} ", user);
-		
-		return user;
+	public static Map<String, String> getParam(BufferedReader br, String line, HttpHeader httpHeader) throws IOException{
+		if(httpHeader.getType().equals("GET")) {
+			return getGetInfo(httpHeader.getUrl());
+		}else if(httpHeader.getType().equals("POST")){
+			return getPostInfo(br, line);
+		}else {
+			return null;
+		}
 	}
 	
-	public static User getPostUser(BufferedReader br, String line) throws IOException {
+	public static Map<String, String> getGetInfo(String url) {
+		int index = url.indexOf("?");
+		String queryString = url.substring(index + 1);
+		return parseQueryString(queryString);
+	}
+	
+	public static Map<String, String> getPostInfo(BufferedReader br, String line) throws IOException {
 		Map<String, String> headers = new HashMap<>();
 		while(!"".equals(line)) {
 			log.debug("header : {}", line);
@@ -48,13 +53,9 @@ public class HttpRequestUtils {
 		log.debug("Content-Length : {} ", headers.get("Content-Length"));
 		
 		String requestBody = IOUtils.readData(br, Integer.parseInt(headers.get("Content-Length")));
-		
 		log.debug("RequestBody : {} ", requestBody);
-		Map<String, String> params = HttpRequestUtils.parseQueryString(requestBody);
-		User user = new User(params.get("userId"), params.get("password"), params.get("name"), params.get("email"));
-		log.debug("user : {} ", user);
 		
-		return user;
+		return parseQueryString(requestBody);
 	}
 	
 	/**
