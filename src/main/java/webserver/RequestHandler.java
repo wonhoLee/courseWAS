@@ -1,8 +1,10 @@
 package webserver;
 
+import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.Socket;
 
@@ -22,6 +24,14 @@ public class RequestHandler extends Thread {
 		log.debug("New Client Connect! Connected IP : {}, Port : {}", connection.getInetAddress(), connection.getPort());
 		
 		try (InputStream in = connection.getInputStream(); OutputStream out = connection.getOutputStream()) {
+			BufferedReader br = new BufferedReader(new InputStreamReader(in, "UTF-8"));
+			String line = br.readLine();
+			log.debug("request line : {};", line);
+			while(!line.equals("")) {
+				line = br.readLine();
+				log.debug("header : {};", line);
+			}
+			
 			
 			DataOutputStream dos = new DataOutputStream(out);
 			byte[] body = "Hello World".getBytes();
